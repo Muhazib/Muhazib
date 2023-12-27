@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <p>Dear Admin,</p>
+    <p>The following order has been canceled:</p>
+    <p>Order name: {{ order.product.name }}</p>
+    <p>Order ID: {{ order.id }}</p>
+    <p>Customer: {{ order.customer}}</p>
+    <p>Quantity: {{ order.quantity }}</p>
+    <p>Total Amount: {{ order.price }}</p>
+    <p>Location: {{ order.address }}</p>
+    <p>Phone number: {{ order.phone }}</p>
+    <!-- Add more order details as needed -->
+    <p>Order Cancellation Notification: This order has been canceled.</p>
+    <p>Thank you!</p>
+</body>
+</html>

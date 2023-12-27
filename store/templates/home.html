@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% block title %}Grill Stone Food Delivery{% endblock %}
+
+{% block header %}
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+    <!-- Include jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+
+    <!-- Include Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script> 
+    <style>
+        #myCarousel img{
+            object-fit: cover;  /* Maintain aspect ratio while covering the entire container */
+            width: 100%;        /* Make the image take 100% of the width of its container */
+            height: 300px;      /* Set a fixed height for uniformity; adjust as needed */
+        }
+        #fooder{
+            background-color: #fa8e8e;
+        }
+        .h3, h3 {
+            font-size: 1.01rem;
+            color: #000;
+        }
+        #quot{
+            text-align: center;
+            font-size: 3rem;
+        }
+        #quot{
+            background-color: rgb(0, 0, 0);
+            font-size: 2rem;
+            text-align: center;
+        }
+        #fooder:hover {
+            transform: scale(1.1); /* You can adjust the scale factor as needed */
+            transition: transform 0.3s ease; /* Adjust the transition duration and timing function */}
+        #sn{
+            position: fixed;
+            right: 0;
+        }
+        label {
+            display: flex;
+            margin-bottom: .5rem;
+        }
+        </style>
+        {% load static %}
+            
+{% endblock %}
+{% block content %}
+{% load static %}
+<div class="container">
+    <div id="myCarousel" class="carousel slide" data-ride="carousel">
+        <div class="carousel-inner w-50 mx-auto my-2">
+            {% for image in carousel_images %}
+                <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                    <img src="{{ image.image.url }}" class="d-block w-100" alt="{{ image.alt_text }}">
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Add autoplay attribute to enable autoplay -->
+        <script>
+            $('.carousel').carousel({
+                interval: 4000, // Set the interval in milliseconds (4 seconds in this example)
+                pause: false // Set to false to disable pause on hover
+            });
+        </script>
+    </div>
+</div>
+<div class="quote" id = 'quot' style = 'text-align: center; font-size: 3rem;'>
+    <i style="color: goldenrod;">"Indulge your senses at Grillstone" </i>
+</div>
+    {% comment %} <a href="{% url 'dynamic_category_page' category_slug='pizza' %}">Pizza</a> {% endcomment %}
+    <div>
+        {% for category in food_items %}
+				<a href="/store?category={{category.id}}">
+					<div id='fooder' style="border: 1px solid #000000; padding: 0px; margin: 0px; display: inline-block;">
+                        <img src="{{ category.image.url }}" alt="{{ category.name }}" style="max-width: 200px; max-height: 200px;">
+                        <h3>{{ category.name }}</h3>
+                    </div>
+                </a>
+			{% endfor %}
+        {% comment %} {% for item in food_items %}
+        <a href="{% url 'food_detail' food_id=item.id %}">
+        <div id='fooder' style="border: 1px solid #000000; padding: 0px; margin: 0px; display: inline-block;">
+            <img src="{{ item.image.url }}" alt="{{ item.title }}" style="max-width: 200px; max-height: 200px;">
+            <h3>{{ item.title }}</h3>
+        </div>
+        </a>
+    {% endfor %} {% endcomment %}
+    </div>
+</div>
+{% endblock %}

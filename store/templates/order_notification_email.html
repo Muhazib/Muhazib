@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <p>Dear Admin,</p>
+    <p>A new order has been placed with the following details:</p>
+    <p>Order: {{ order.product.name }}</p>
+    <p>Order ID: {{ order.id }}</p>
+    <p>Customer: {{ order.customer}}</p>
+    {% comment %} <p>Customer name: {{ order.customer.first_name }}</p> {% endcomment %}
+    <p>Quantity: {{ order.quantity }}</p>
+    <p>Total Amount: {{ order.price }}</p>
+    <p>location: {{ order.address }}</p>
+    <p>phone number: {{ order.phone }}</p>
+    <!-- Add more order details as needed -->
+    Here you go with the order html http://127.0.0.1:8000/admin/store/order/{{order.id}}/change/
+    <p>Thank you!</p>
+</body>
+</html>

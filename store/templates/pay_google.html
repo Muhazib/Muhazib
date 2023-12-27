@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://pay.google.com/gp/p/js/pay.js"></script>
+</head>
+<body>
+    <button value="googlepay" id="googlePayButton" data-total-price="{{ order.price }}">Pay with Google Pay</button>
+    <h1>{{order.price}}</h1>
+    <!-- <option value="googlepay" id="googlePayButton">Pay with Google Pay</option> -->
+    <script>
+        const googlePayButton = document.getElementById('googlePayButton');
+        const totalPrice = googlePayButton.dataset.totalPrice;
+        googlePayButton.addEventListener('click', () => {
+          const paymentDataRequest = {
+            apiVersion: 2,
+            apiVersionMinor: 0,
+            allowedPaymentMethods: [
+              {
+                type: 'CARD',
+                parameters: {
+                  allowedAuthMethods: ['PAN_ONLY', 'CRYPTOGRAM_3DS'],
+                  allowedCardNetworks: ['AMEX', 'DISCOVER', 'JCB', 'MASTERCARD', 'VISA'],
+                },
+                tokenizationSpecification: {
+                  type: 'PAYMENT_GATEWAY',
+                  parameters: {
+                    gateway: 'example',
+                    gatewayMerchantId: 'BCR2DN4TZL6K5FDV',
+                  },
+                },
+              },
+            ],
+            merchantInfo: {
+              merchantName: 'muhazib',
+              merchantId: 'BCR2DN4TZL6K5FDV',
+            },
+            transactionInfo: {
+              totalPriceStatus: 'FINAL',
+              totalPrice: '100', // Replace with your actual total amount
+              currencyCode: 'INR', // Replace with your actual currency code
+            },
+          };
+      
+          const paymentsClient = new google.payments.api.PaymentsClient({ environment: 'TEST' }); // Use 'PRODUCTION' for a live environment
+      
+          paymentsClient.loadPaymentData(paymentDataRequest)
+            .then(response => {
+              // Handle successful payment response
+              console.log(response);
+            })
+            .catch(error => {
+              // Handle payment error
+              console.error(error);
+            });
+        });
+    </script>
+</body>
+</html>

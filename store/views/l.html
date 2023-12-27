@@ -1,0 +1,429 @@
+<!-- checkout.html -->
+
+{% extends 'base.html' %}
+{% block content %}
+{% load cart %}
+{% load custom_filter %}
+<div class="container">
+   <div class="border rounded p-4 m-4">
+        <p class="display-4 pl-4 ml-4 btn btn-success rounded-pill">Your Cart</p>
+        <hr>
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Sno.</th>
+                        <th>Image</th>
+                        <th>Product</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Total</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in products %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td><img style="max-height: 80px;" class="img-fluid rounded-circle" src="{{ product.image.url }}" alt=""></td>
+                            <td>{{ product.name }}</td>
+                            <td>{{ product.price|currency }}</td>
+                            <td>
+                                <form action="{% url 'update_quantity' %}" method="POST">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="product_id" value="{{ product.id }}">
+                                    <input type="number" name="quantity" value="{{ product|cart_quantity:request.session.cart }}" class="form-control">
+                                    <button type="submit" class="btn btn-primary btn-sm">Update</button>
+                                </form>
+                            </td>
+                            <td>{{ product|price_total:request.session.cart|currency }}</td>
+                            <td>
+                                <form action="{% url 'remove_from_cart' %}" method="POST">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="product_id" value="{{ product.id }}">
+                                    <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th colspan="4"></th>
+                        <th class="" colspan="">Total</th>
+                        <th>{{products|total_cart_price:request.session.cart|currency}}</th>
+                        <th></th>
+                    </tr>
+                </tfoot>
+            </table>
+            <!-- Cart table content as in your original HTML -->
+            <!-- ... -->
+        </div>
+        <hr>
+        <div class="m-3 p-3">
+            <a href="#" data-toggle="modal" data-target="#exampleModal" class="btn btn-outline-success border rounded col-lg-3 float-right">Check out</a>
+        </div>
+   </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <!-- Modal content as in your original HTML -->
+    <!-- ... -->
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Check Out Form</h5>
+                <hr>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="m-2 p-3">
+                    <form id="checkoutForm" action="{% url 'checkout' %}" method="POST">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="address">Address</label>
+                            <input type="text" name="address" id="address" class="form-control" placeholder="" aria-describedby="helpId">
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Phone</label>
+                            <div class="input-group">
+                                <input type="hidden" name="phone_for_otp" id="phone_for_otp">
+                                <input type="number" name="phone" id="phone" class="form-control" placeholder="9906856437" aria-describedby="helpId" required minlength="10" maxlength="10">
+                                <div class="input-group-append">
+                                    <button class="btn btn-outline-secondary" id='send_otp' type="button" onclick="sendOtp()">Get OTP</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group" id="otpSection" style="display: none;">
+                            {% csrf_token %}
+                            <label for="otp">Enter OTP</label>
+                            <input type="text" name="otp" id="otp" class="form-control" placeholder="" aria-describedby="helpId" required minlength="6" maxlength="6">
+                        </div>
+                        <div class="form-group">
+                            <label for="paymentMethod">Payment Method</label>
+                            <select name="payment_method" id="paymentMethod" class="form-control" required>
+                                <option value="pay_on_delivery">Pay on Delivery</option>
+                                <option value="card">Pay with Card</option>
+                                <option value="googlepay" id="googlePayButton">Pay with Google Pay</option>
+                                <option value="paytm">Pay with Paytm</option>
+                            </select>
+                        </div>
+                        <input type="submit" class="btn float-right btn-outline-success col-lg-6" value="Check out">
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="undo-alert" class="alert alert-warning fixed-bottom text-center" style="display: none;">
+    <strong>Item removed!</strong> <a href="#" onclick="undoRemove()">Undo</a>
+</div>
+<script>
+    function sendOtp() {
+        const phone = document.getElementById('phone').value;
+        document.getElementById('phone_for_otp').value = phone;
+
+        document.getElementById("otpSection").style.display = "block";
+    }
+    document.getElementById('checkoutForm').addEventListener('submit', function (event) {
+        const otpSection = document.getElementById('otpSection');
+        if (otpSection.style.display === 'block') {
+            const enteredOtp = document.getElementById('otp').value;
+            const phoneForOtp = document.getElementById('phone_for_otp').value;
+
+            // Verify OTP using AJAX
+            verifyOtpWithServer(phoneForOtp, enteredOtp)
+                .then(response => {
+                    if (response.ok) {
+                        // Proceed with form submission
+                        return true;
+                    } else {
+                        // Incorrect OTP, display error message
+                        alert('Incorrect OTP. Please try again.');
+                        event.preventDefault();  // Prevent form submission
+                        return false;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error verifying OTP:', error);
+                    event.preventDefault();  // Prevent form submission
+                    return false;
+                });
+        }
+    });
+
+    function verifyOtpWithServer(phone, otp) {
+        // Implement an AJAX request to your Django view for OTP verification
+        // Example using fetch:
+        return fetch('/verify_otp/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken'),  // Include CSRF token
+            },
+            body: JSON.stringify({ phone: phone, otp: otp }),
+        });
+    }
+
+    // Helper function to get CSRF token from cookies
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    const googlePayButton = document.getElementById('googlePayButton');
+    const totalPrice = googlePayButton.dataset.totalPrice;
+    googlePayButton.addEventListener('click', () => {
+        const paymentDataRequest = {
+            apiVersion: 2,
+            apiVersionMinor: 0,
+            allowedPaymentMethods: [
+                {
+                    type: 'CARD',
+                    parameters: {
+                        allowedAuthMethods: ['PAN_ONLY', 'CRYPTOGRAM_3DS'],
+                        allowedCardNetworks: ['AMEX', 'DISCOVER', 'JCB', 'MASTERCARD', 'VISA'],
+                    },
+                    tokenizationSpecification: {
+                        type: 'PAYMENT_GATEWAY',
+                        parameters: {
+                            gateway: 'example',
+                            gatewayMerchantId: 'BCR2DN4TZL6K5FDV',
+                        },
+                    },
+                },
+            ],
+            merchantInfo: {
+                merchantName: 'muhazib',
+                merchantId: 'BCR2DN4TZL6K5FDV',
+            },
+            transactionInfo: {
+                totalPriceStatus: 'FINAL',
+                totalPrice: '1000', // Replace with your actual total amount
+                currencyCode: 'INR', // Replace with your actual currency code
+            },
+        };
+
+        const paymentsClient = new google.payments.api.PaymentsClient({ environment: 'TEST' });
+
+        paymentsClient.loadPaymentData(paymentDataRequest)
+            .then(response => {
+                console.log(response);
+            })
+            .catch(error => {
+                console.error(error);
+            });
+    });
+</script>
+
+
+{% endblock %}
+<!-- Modal -->
+{% comment %} <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <!-- Modal content as in your original HTML -->
+    <!-- ... -->
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Check Out Form</h5>
+                <hr>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="m-2 p-3">
+                    <form id="checkoutForm" action="{% url 'checkout' %}" method="POST">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="address">Address</label>
+                            <input type="text" name="address" id="address" class="form-control" placeholder="" aria-describedby="helpId">
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Phone</label>
+                            <div class="input-group">
+                                <input type="hidden" name="phone_for_otp" id="phone_for_otp">
+                                <input type="number" name="phone" id="phone" class="form-control" placeholder="9906856437" aria-describedby="helpId" required minlength="10" maxlength="10">
+                                {% comment %} <div class="input-group-append">
+                                </div> {% endcomment %}
+                            </div>
+                        </div>
+                        {% comment %} <div class="form-group" id="otpSection" style="display: none;">
+                            {% csrf_token %}
+                            <label for="otp">Enter OTP</label>
+                            <input type="text" name="otp" id="otp" class="form-control" placeholder="" aria-describedby="helpId" required minlength="6" maxlength="6">
+                        </div> {% endcomment %}
+                        <div class="form-group">
+                            <label for="paymentMethod">Payment Method</label>
+                            <select name="payment_method" id="paymentMethod" class="form-control" required>
+                                <option value="pay_on_delivery">Pay on Delivery</option>
+                                <option value="card">Pay with Card</option>
+                                <option value="googlepay" id="googlePayButton">Pay with Google Pay</option>
+                                <option value="paytm">Pay with Paytm</option>
+                            </select>
+                        </div>
+                        <input type="submit" class="btn float-right btn-outline-success col-lg-6" value="Check out">
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="undo-alert" class="alert alert-warning fixed-bottom text-center" style="display: none;">
+    <strong>Item removed!</strong> <a href="#" onclick="undoRemove()">Undo</a>
+</div>
+<script>
+    {% comment %} function sendOtp() {
+        const phone = document.getElementById('phone').value;
+        document.getElementById('phone_for_otp').value = phone;
+
+        document.getElementById("otpSection").style.display = "block";
+    } {% endcomment %}
+    {% comment %} function sendOtp() {
+        const phone = document.getElementById('phone').value;
+        document.getElementById('phone_for_otp').value = phone;
+
+        document.getElementById("otpSection").style.display = "block";
+    }
+    document.getElementById('checkoutForm').addEventListener('submit', function (event) {
+        const otpSection = document.getElementById('otpSection');
+        if (otpSection.style.display === 'block') {
+            const enteredOtp = document.getElementById('otp').value;
+            const phoneForOtp = document.getElementById('phone_for_otp').value;
+
+            // Verify OTP using AJAX
+            verifyOtpWithServer(phoneForOtp, enteredOtp)
+                .then(response => {
+                    if (response.ok) {
+                        // Proceed with form submission
+                        return true;
+                    } else {
+                        // Incorrect OTP, display error message
+                        alert('Incorrect OTP. Please try again.');
+                        event.preventDefault();  // Prevent form submission
+                        return false;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error verifying OTP:', error);
+                    event.preventDefault();  // Prevent form submission
+                    return false;
+                });
+        }
+    });
+
+    function verifyOtpWithServer(phone, otp) {
+        // Implement an AJAX request to your Django view for OTP verification
+        // Example using fetch:
+        return fetch("{% url 'checkout' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken'),  // Include CSRF token
+            },
+            body: JSON.stringify({ phone: phone, otp: otp }),
+        });
+    }
+
+    // Helper function to get CSRF token from cookies
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    } {% endcomment %}
+    const paymentMethod = document.getElementById('paymentMethod').value;
+    const totalPrice = googlePayButton.dataset.totalPrice;
+    document.getElementById('checkoutForm').addEventListener('submit', function (event) {
+          // Prevent form submission
+    
+        const paymentMethod = document.getElementById('paymentMethod').value;
+    
+        if (paymentMethod === 'googlepay') {
+            handleGooglePay();  // Execute Google Pay logic
+        } else {
+            // If not Google Pay, proceed with the regular form submission
+            const formData = new FormData(this);
+    
+            fetch("{% url 'checkout' %}", {
+                method: 'POST',
+                body: formData,
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Handle the server response if needed
+                console.log(data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    });
+    
+    function handleGooglePay() {
+        const paymentDataRequest = {
+            apiVersion: 2,
+            apiVersionMinor: 0,
+            allowedPaymentMethods: [
+              {
+                type: 'CARD',
+                parameters: {
+                  allowedAuthMethods: ['PAN_ONLY', 'CRYPTOGRAM_3DS'],
+                  allowedCardNetworks: ['AMEX', 'DISCOVER', 'JCB', 'MASTERCARD', 'VISA'],
+                },
+                tokenizationSpecification: {
+                  type: 'PAYMENT_GATEWAY',
+                  parameters: {
+                    gateway: 'example',
+                    gatewayMerchantId: 'BCR2DN4TZL6K5FDV',
+                  },
+                },
+              },
+            ],
+            merchantInfo: {
+              merchantName: 'muhazib',
+              merchantId: 'BCR2DN4TZL6K5FDV',
+            },
+            transactionInfo: {
+              totalPriceStatus: 'FINAL',
+              totalPrice: '100', // Replace with your actual total amount
+              currencyCode: 'INR', // Replace with your actual currency code
+            },
+        };
+    
+        const paymentsClient = new google.payments.api.PaymentsClient({ environment: 'TEST' });
+    
+        paymentsClient.loadPaymentData(paymentDataRequest)
+            .then(response => {
+                // Handle successful payment response
+                console.log(response);
+            })
+            .catch(error => {
+                // Handle payment error
+                console.error(error);
+            });
+    }
+    
+</script> {% endcomment %}

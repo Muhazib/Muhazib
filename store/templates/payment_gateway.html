@@ -1,0 +1,62 @@
+<!-- payment_gateway.html -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+  <div class="container">
+    <div class="border rounded p-4 m-4">
+      <h2>Select Payment Method</h2>
+      <form id="paymentForm">
+        {% csrf_token %}
+        <input type="hidden" name="client_secret" value="{{ client_secret }}">
+        <div class="form-group">
+          <label for="cardNumber">Card Number</label>
+          <input id="cardNumber" class="form-control" placeholder="Card Number" required>
+        </div>
+        <div class="form-group">
+          <label for="expiryDate">Expiry Date</label>
+          <input id="expiryDate" class="form-control" placeholder="MM/YY" required>
+        </div>
+        <div class="form-group">
+          <label for="cvv">CVV</label>
+          <input id="cvv" class="form-control" placeholder="CVV" required>
+        </div>
+
+        <button id="payButton" class="btn btn-outline-success">Pay Now</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://js.stripe.com/v3/"></script>
+  <script>
+    // Set up Stripe.js
+    const stripe = Stripe('{{ settings.STRIPE_PUBLIC_KEY }}');
+    const elements = stripe.elements();
+    const card = elements.create('card');
+
+    card.mount('#cardNumber');
+
+    const form = document.getElementById('paymentForm');
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const {token, error} = await stripe.createToken(card);
+
+      if (error) {
+        // Handle error
+        console.error(error);
+      } else {
+        // Send token to your server
+        stripeTokenHandler(token);
+      }
+    });
+
+    function stripeTokenHandler(token) {
+      // You can send the token to your backend to process the payment
+      // Example: Fetch('/process-payment', { method: 'POST', body: {token: token.id} })
+      // Then handle the payment on the server side
+      console.log(token);
+    }
+  </script>
+{% endblock %}

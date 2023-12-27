@@ -1,0 +1,16 @@
+New Order Notification
+
+Order Details:
+Order ID: {{ order.id }}
+Customer: {{ order.customer }}
+Total Amount: {{ order.total_amount }}
+
+Items:
+{% for item in order.items.all %}
+  - {{ item.product }} (Quantity: {{ item.quantity }})
+{% endfor %}
+
+Shipping Address:
+{{ order.shipping_address }}
+
+Thank you for your attention!
