@@ -18,7 +18,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
-OTP_TOTP_MODEL = 'store.CustomTOTPDevice'
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '-95t%=#4o3@l-(-%ok9*h%n3!0(sdchjn%+_$5#umaj-!3bg*7'
 
@@ -37,8 +36,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django_otp',
-    'django_otp.plugins.otp_totp',
     'phonenumber_field',
     # 'store.apps.storeConfig',
     'store'
@@ -106,10 +103,6 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
-import os
-TWILIO_ACCOUNT_SID = "AC1adf95b9101cc408a509bf5c08b8b2ea"
-TWILIO_AUTH_TOKEN = "VAb26a8e5ee4c5d49c12809f6a031cf924"
-TWILIO_PHONE_NUMBER = "+916006561669"
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
