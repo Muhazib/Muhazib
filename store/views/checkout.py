@@ -9,7 +9,6 @@ from store.models.orders import Order
 from store.views.signal import send_order_notification
 from twilio.rest import Client
 from django.conf import settings
-from django_otp.plugins.otp_totp.models import TOTPDevice
 import os
 import random
 class CheckOut(View):
