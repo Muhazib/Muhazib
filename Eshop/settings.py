@@ -18,7 +18,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
-OTP_TOTP_MODEL = 'store.CustomTOTPDevice'
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '-95t%=#4o3@l-(-%ok9*h%n3!0(sdchjn%+_$5#umaj-!3bg*7'
 
@@ -37,8 +36,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django_otp',
-    'django_otp.plugins.otp_totp',
     'phonenumber_field',
     # 'store.apps.storeConfig',
     'store'
