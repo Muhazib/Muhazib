@@ -103,10 +103,6 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
-import os
-TWILIO_ACCOUNT_SID = "AC1adf95b9101cc408a509bf5c08b8b2ea"
-TWILIO_AUTH_TOKEN = "VAb26a8e5ee4c5d49c12809f6a031cf924"
-TWILIO_PHONE_NUMBER = "+916006561669"
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
